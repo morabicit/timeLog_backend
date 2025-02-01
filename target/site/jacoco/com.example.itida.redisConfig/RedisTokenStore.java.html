@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>RedisTokenStore.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">itida</a> &gt; <a href="index.source.html" class="el_package">com.example.itida.redisConfig</a> &gt; <span class="el_source">RedisTokenStore.java</span></div><h1>RedisTokenStore.java</h1><pre class="source lang-java linenums">package com.example.itida.redisConfig;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.stereotype.Service;
+
+import java.util.concurrent.TimeUnit;
+
+@Service
+public class RedisTokenStore {
+
+    private static final String ACCESS_TOKEN_PREFIX = &quot;access_token:&quot;;
+    private static final String REFRESH_TOKEN_PREFIX = &quot;refresh_token:&quot;;
+
+    private final RedisTemplate&lt;String, String&gt; redisTemplate;
+
+<span class="nc" id="L17">    public RedisTokenStore(RedisTemplate&lt;String, String&gt; redisTemplate) {</span>
+<span class="nc" id="L18">        this.redisTemplate = redisTemplate;</span>
+<span class="nc" id="L19">    }</span>
+
+    public void storeAccessToken(String token, String email) {
+<span class="nc" id="L22">        String key = ACCESS_TOKEN_PREFIX + token;</span>
+<span class="nc" id="L23">        redisTemplate.opsForValue().set(key, email, 10, TimeUnit.MINUTES);</span>
+<span class="nc" id="L24">    }</span>
+
+    public void storeRefreshToken(String token, String email) {
+<span class="nc" id="L27">        String key = REFRESH_TOKEN_PREFIX + token;</span>
+<span class="nc" id="L28">        redisTemplate.opsForValue().set(key, email, 30, TimeUnit.MINUTES);</span>
+<span class="nc" id="L29">    }</span>
+    public void deleteAccessToken(String token) {
+<span class="nc" id="L31">        String key = ACCESS_TOKEN_PREFIX + token;</span>
+<span class="nc" id="L32">        redisTemplate.delete(key);</span>
+<span class="nc" id="L33">    }</span>
+
+    public void deleteRefreshToken(String token) {
+<span class="nc" id="L36">        String key = REFRESH_TOKEN_PREFIX + token;</span>
+<span class="nc" id="L37">        redisTemplate.delete(key);</span>
+<span class="nc" id="L38">    }</span>
+
+    public boolean isAccessTokenExists(String token) {
+<span class="nc" id="L41">        String key = ACCESS_TOKEN_PREFIX + token;</span>
+<span class="nc" id="L42">        return redisTemplate.hasKey(key);</span>
+    }
+
+    public boolean isRefreshTokenExists(String token) {
+<span class="nc" id="L46">        String key = REFRESH_TOKEN_PREFIX + token;</span>
+<span class="nc" id="L47">        return redisTemplate.hasKey(key);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

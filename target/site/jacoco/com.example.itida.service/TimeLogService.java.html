@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TimeLogService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">itida</a> &gt; <a href="index.source.html" class="el_package">com.example.itida.service</a> &gt; <span class="el_source">TimeLogService.java</span></div><h1>TimeLogService.java</h1><pre class="source lang-java linenums">package com.example.itida.service;
+
+import com.example.itida.dto.TimeLogResponseDto;
+import com.example.itida.entity.TimeLog;
+import com.example.itida.entity.User;
+import com.example.itida.repository.TimeLogRepository;
+import jakarta.xml.bind.ValidationException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+@Service
+public class TimeLogService {
+
+<span class="fc" id="L21">    private final Logger logger = LoggerFactory.getLogger(TimeLogService.class);</span>
+    private final TimeLogRepository timeLogRepository;
+    private final UserService userService;
+
+    @Autowired
+<span class="fc" id="L26">    public TimeLogService(TimeLogRepository timeLogRepository, UserService userService) {</span>
+<span class="fc" id="L27">        this.timeLogRepository = timeLogRepository;</span>
+<span class="fc" id="L28">        this.userService = userService;</span>
+<span class="fc" id="L29">    }</span>
+
+    public TimeLogResponseDto getTodayTimeLog() {
+<span class="fc" id="L32">        logger.info(&quot;getTodayTimeLog() called for current user&quot;);</span>
+        try {
+<span class="fc" id="L34">            User user = userService.getCurrentUser();</span>
+<span class="fc" id="L35">            logger.debug(&quot;Fetching today's time log for user: {}&quot;, user.getEmail());</span>
+<span class="fc" id="L36">            LocalDate today = LocalDate.now();</span>
+<span class="fc" id="L37">            return timeLogRepository.findByUserAndDate(user, today)</span>
+<span class="fc" id="L38">                    .map(timeLog -&gt; {</span>
+<span class="fc" id="L39">                        return new TimeLogResponseDto(timeLog.getDate(), timeLog.getLoginTime(), timeLog.getLogoutTime());</span>
+                    })
+<span class="fc" id="L41">                    .orElseGet(() -&gt; {</span>
+<span class="fc" id="L42">                        logger.warn(&quot;No time log found for user: {} on {}&quot;, user.getEmail(), today);</span>
+<span class="fc" id="L43">                        return null;</span>
+                    });
+<span class="nc" id="L45">        } catch (Exception e) {</span>
+<span class="nc" id="L46">            logger.error(&quot;Error retrieving time log for user&quot;, e);</span>
+<span class="nc" id="L47">            return null;</span>
+        }
+    }
+
+    public TimeLogResponseDto submitTimeLog(TimeLog timeLog) throws ValidationException {
+<span class="fc" id="L52">        logger.info(&quot;submitTimeLog() called for current user&quot;);</span>
+        try {
+<span class="fc" id="L54">            User user = userService.getCurrentUser();</span>
+<span class="fc" id="L55">            logger.debug(&quot;Processing time log for user: {}&quot;, user.getEmail());</span>
+<span class="fc bfc" id="L56" title="All 4 branches covered.">            if (timeLog.getLoginTime() == null &amp;&amp; timeLog.getLogoutTime() == null) {</span>
+<span class="fc" id="L57">                throw new ValidationException(&quot;You have to enter either login or logout time.&quot;);</span>
+            }
+<span class="fc" id="L59">            Optional&lt;TimeLog&gt; existingLog = timeLogRepository.findByUserAndDate(user, timeLog.getDate());</span>
+<span class="fc" id="L60">            TimeLog savedTimeLog = existingLog.map(existingTimeLog -&gt; {</span>
+<span class="fc bfc" id="L61" title="All 2 branches covered.">                if(timeLog.getLoginTime() != null)</span>
+<span class="fc" id="L62">                    existingTimeLog.setLoginTime(timeLog.getLoginTime());</span>
+<span class="fc" id="L63">                existingTimeLog.setLogoutTime(timeLog.getLogoutTime());</span>
+<span class="fc" id="L64">                logger.debug(&quot;Updating existing time log for user: {} on date: {}&quot;, user.getEmail(), timeLog.getDate());</span>
+<span class="fc" id="L65">                return timeLogRepository.save(existingTimeLog);</span>
+<span class="fc" id="L66">            }).orElseGet(() -&gt; {</span>
+<span class="fc" id="L67">                timeLog.setUser(user);</span>
+<span class="fc" id="L68">                logger.debug(&quot;Creating new time log for user: {} on date: {}&quot;, user.getEmail(), timeLog.getDate());</span>
+<span class="fc" id="L69">                return timeLogRepository.save(timeLog);</span>
+            });
+<span class="fc" id="L71">            return new TimeLogResponseDto(savedTimeLog.getDate(), savedTimeLog.getLoginTime(), savedTimeLog.getLogoutTime());</span>
+<span class="fc" id="L72">        } catch (ValidationException e) {</span>
+<span class="fc" id="L73">            logger.error(&quot;ValidationException: {}&quot;, e.getMessage());</span>
+<span class="fc" id="L74">            throw e;</span>
+<span class="nc" id="L75">        } catch (Exception e) {</span>
+<span class="nc" id="L76">            logger.error(&quot;Error processing time log for user: {}&quot;, e.getMessage(), e);</span>
+<span class="nc" id="L77">            throw new RuntimeException(&quot;An error occurred while submitting the time log&quot;, e);</span>
+        }
+    }
+
+    public List&lt;TimeLogResponseDto&gt; getTimeLogsByUserAndDateRange(LocalDate startDate, LocalDate endDate) {
+<span class="fc" id="L82">        logger.info(&quot;getTimeLogsByUserAndDateRange() called&quot;);</span>
+<span class="fc" id="L83">        User user = userService.getCurrentUser();</span>
+<span class="fc" id="L84">        logger.info(&quot;Fetching time logs for user: {} with parameters: startDate={}, endDate={}&quot;, user.getEmail(),startDate, endDate);</span>
+<span class="fc" id="L85">        List&lt;TimeLog&gt; logs = timeLogRepository.findByUserAndDateBetween(user, startDate, endDate);</span>
+<span class="fc bfc" id="L86" title="All 2 branches covered.">        if (logs.isEmpty()) {</span>
+<span class="fc" id="L87">            logger.warn(&quot;No time logs found for user: {} between {} and {}&quot;, user.getEmail(), startDate, endDate);</span>
+        } else {
+<span class="fc" id="L89">            logger.info(&quot;Retrieved {} time logs for user: {} between {} and {}&quot;, logs.size(), user.getEmail(), startDate, endDate);</span>
+        }
+<span class="fc" id="L91">        return logs.stream()</span>
+<span class="fc" id="L92">                .map(log -&gt; new TimeLogResponseDto(log.getDate(), log.getLoginTime(), log.getLogoutTime()))</span>
+<span class="fc" id="L93">                .collect(Collectors.toList());</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

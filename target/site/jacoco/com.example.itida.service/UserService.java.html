@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>UserService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">itida</a> &gt; <a href="index.source.html" class="el_package">com.example.itida.service</a> &gt; <span class="el_source">UserService.java</span></div><h1>UserService.java</h1><pre class="source lang-java linenums">package com.example.itida.service;
+
+import com.example.itida.dto.UserDto;
+import com.example.itida.entity.User;
+import com.example.itida.exception.EmailAlreadyExists;
+import com.example.itida.exception.UserNotFound;
+import com.example.itida.repository.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
+import org.springframework.util.ReflectionUtils;
+
+import java.lang.reflect.Field;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+@Service
+public class UserService {
+
+    private final UserRepository userRepository;
+<span class="fc" id="L25">    private final Logger logger = LoggerFactory.getLogger(UserService.class);</span>
+
+<span class="fc" id="L27">    public UserService(UserRepository userRepository) {</span>
+<span class="fc" id="L28">        this.userRepository = userRepository;</span>
+<span class="fc" id="L29">    }</span>
+
+    public List&lt;UserDto&gt; getAllUsers() {
+<span class="fc" id="L32">        logger.info(&quot;getAllUsers() called&quot;);</span>
+
+<span class="fc" id="L34">        List&lt;User&gt; users = userRepository.findAll();</span>
+<span class="pc bpc" id="L35" title="1 of 2 branches missed.">        if(users.isEmpty()) {</span>
+<span class="nc" id="L36">            logger.warn(&quot;No users found in database&quot;);</span>
+        }
+<span class="fc" id="L38">        return UserDto.userToUserDto(users);</span>
+    }
+    public Optional&lt;UserDto&gt; getUserById(Long id) {
+<span class="fc" id="L41">        logger.info(&quot;getUserById() called for id: {}&quot;, id);</span>
+<span class="fc" id="L42">        logger.debug(&quot;getUserById() called with parameters [id: {}]&quot;, id);</span>
+<span class="fc" id="L43">        Optional&lt;User&gt; user = userRepository.findById(id);</span>
+
+<span class="fc bfc" id="L45" title="All 2 branches covered.">        if(user.isEmpty()) {</span>
+<span class="fc" id="L46">            logger.error(&quot;User not found with id: {}&quot;, id);</span>
+<span class="fc" id="L47">            throw new UserNotFound(&quot;User not Found&quot;);</span>
+        }
+<span class="fc" id="L49">        return user.map(UserDto::userToUserDto);</span>
+    }
+
+    public UserDto partialUpdateUser(Long id, Map&lt;String, Object&gt; updates) {
+<span class="fc" id="L53">        logger.info(&quot;partialUpdateUser() called&quot;);</span>
+<span class="fc" id="L54">        logger.debug(&quot;partialUpdateUser() called with parameters [id: {}, updates: {}]&quot;, id, updates.keySet());</span>
+
+<span class="fc" id="L56">        User user = userRepository.findById(id)</span>
+<span class="fc" id="L57">                .orElseThrow(() -&gt; {</span>
+<span class="fc" id="L58">                    logger.error(&quot;User not found for update with id: {}&quot;, id);</span>
+<span class="fc" id="L59">                    return new UserNotFound(&quot;User not found with id: &quot; + id);</span>
+                });
+
+<span class="pc bpc" id="L62" title="1 of 2 branches missed.">        if (updates.containsKey(&quot;email&quot;)) {</span>
+<span class="fc" id="L63">            String email = (String) updates.get(&quot;email&quot;);</span>
+<span class="fc" id="L64">            logger.debug(&quot;Checking email available for: {}&quot;, email);</span>
+
+<span class="fc" id="L66">            Optional&lt;User&gt; existingUser = userRepository.findByEmail(email);</span>
+<span class="pc bpc" id="L67" title="1 of 4 branches missed.">            if (existingUser.isPresent() &amp;&amp; !existingUser.get().getId().equals(id)) {</span>
+<span class="fc" id="L68">                logger.error(&quot;Email conflict detected: {}&quot;, email);</span>
+<span class="fc" id="L69">                throw new EmailAlreadyExists(&quot;Email already exists&quot;);</span>
+            }
+        }
+
+<span class="fc" id="L73">        updates.forEach((key, value) -&gt; {</span>
+<span class="fc" id="L74">            Field field = ReflectionUtils.findField(User.class, key);</span>
+<span class="fc bfc" id="L75" title="All 2 branches covered.">            if (field != null) {</span>
+<span class="fc" id="L76">                field.setAccessible(true);</span>
+<span class="fc" id="L77">                ReflectionUtils.setField(field, user, value);</span>
+            }
+<span class="fc" id="L79">        });</span>
+<span class="fc" id="L80">        return UserDto.userToUserDto(userRepository.save(user));</span>
+    }
+
+    public void deleteUser(Long id) {
+<span class="fc" id="L84">        logger.info(&quot;deleteUser() called&quot;);</span>
+<span class="fc" id="L85">        logger.debug(&quot;deleteUser() called with parameters [id: {}]&quot;, id);</span>
+
+<span class="fc bfc" id="L87" title="All 2 branches covered.">        if (!userRepository.existsById(id)) {</span>
+<span class="fc" id="L88">            logger.error(&quot;Delete failed - user not found with id: {}&quot;, id);</span>
+<span class="fc" id="L89">            throw new UserNotFound(&quot;User not found with id: &quot; + id);</span>
+        }
+
+<span class="fc" id="L92">        userRepository.deleteById(id);</span>
+<span class="fc" id="L93">        logger.info(&quot;User {} successfully deleted&quot;, id);</span>
+<span class="fc" id="L94">    }</span>
+
+    public User getCurrentUser() throws AccessDeniedException {
+<span class="fc" id="L97">        logger.info(&quot;getCurrentUser() called&quot;);</span>
+<span class="fc" id="L98">        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();</span>
+<span class="pc bpc" id="L99" title="1 of 2 branches missed.">        if (authentication == null) {</span>
+<span class="nc" id="L100">            logger.error(&quot;No authentication found for curent user&quot;);</span>
+<span class="nc" id="L101">            throw new AccessDeniedException(&quot;No authenticated user found&quot;);</span>
+        }
+<span class="fc" id="L103">        logger.debug(&quot;Looking up The user: {}&quot;, authentication.getName());</span>
+<span class="fc" id="L104">        return  userRepository.findByEmail(authentication.getName())</span>
+<span class="fc" id="L105">                .orElseThrow(() -&gt; {</span>
+<span class="fc" id="L106">                    logger.error(&quot;User not found for email: {}&quot;, authentication.getName());</span>
+<span class="fc" id="L107">                    return new AccessDeniedException(&quot;User not found&quot;);</span>
+                        }
+                );
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

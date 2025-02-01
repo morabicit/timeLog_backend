@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TimeLogController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">itida</a> &gt; <a href="index.source.html" class="el_package">com.example.itida.controller</a> &gt; <span class="el_source">TimeLogController.java</span></div><h1>TimeLogController.java</h1><pre class="source lang-java linenums">package com.example.itida.controller;
+
+import com.example.itida.dto.TimeLogResponseDto;
+import com.example.itida.entity.TimeLog;
+import com.example.itida.service.TimeLogService;
+import jakarta.xml.bind.ValidationException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
+import java.time.YearMonth;
+import java.util.List;
+
+@RestController
+@RequestMapping(&quot;/api/logs&quot;)
+public class TimeLogController {
+
+<span class="nc" id="L22">    private final Logger logger = LoggerFactory.getLogger(TimeLogController.class);</span>
+    private final TimeLogService timeLogService;
+
+    @Autowired
+<span class="nc" id="L26">    public TimeLogController(TimeLogService timeLogService) {</span>
+<span class="nc" id="L27">        this.timeLogService = timeLogService;</span>
+<span class="nc" id="L28">    }</span>
+
+    @GetMapping(&quot;/today&quot;)
+    public ResponseEntity&lt;TimeLogResponseDto&gt; getTodayTimeLog() {
+<span class="nc" id="L32">        TimeLogResponseDto timeLogResponseDto =  timeLogService.getTodayTimeLog();</span>
+<span class="nc bnc" id="L33" title="All 2 branches missed.">        if (timeLogResponseDto == null){</span>
+<span class="nc" id="L34">            return new ResponseEntity&lt;&gt;(HttpStatus.NOT_FOUND);</span>
+        }
+<span class="nc" id="L36">        return new ResponseEntity&lt;&gt;(timeLogResponseDto, HttpStatus.OK);</span>
+
+    }
+    @PostMapping(&quot;/submit&quot;)
+    public ResponseEntity&lt;TimeLogResponseDto&gt; createTimeLog(@RequestBody TimeLog timeLog) throws ValidationException {
+<span class="nc" id="L41">        logger.info(&quot;POST request / with current user and parameters: &quot;+ timeLog);</span>
+<span class="nc" id="L42">        TimeLogResponseDto timeLogResponseDto = timeLogService.submitTimeLog(timeLog);</span>
+<span class="nc" id="L43">        return new ResponseEntity&lt;&gt;(timeLogResponseDto,HttpStatus.OK);</span>
+    }
+    @GetMapping(&quot;/history&quot;)
+    public ResponseEntity&lt;List&lt;TimeLogResponseDto&gt;&gt; getMonthlyTimeLogs(
+            @RequestParam(&quot;month&quot;) String month) {
+<span class="nc" id="L48">        YearMonth yearMonth = YearMonth.parse(month);</span>
+<span class="nc" id="L49">        LocalDate startDate = yearMonth.atDay(1);</span>
+<span class="nc" id="L50">        LocalDate endDate = yearMonth.atEndOfMonth();</span>
+
+<span class="nc" id="L52">        List&lt;TimeLogResponseDto&gt; logs = timeLogService.getTimeLogsByUserAndDateRange(</span>
+                startDate,
+                endDate
+        );
+
+<span class="nc" id="L57">        return ResponseEntity.ok(logs);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AuthService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">itida</a> &gt; <a href="index.source.html" class="el_package">com.example.itida.service</a> &gt; <span class="el_source">AuthService.java</span></div><h1>AuthService.java</h1><pre class="source lang-java linenums">package com.example.itida.service;
+
+import com.example.itida.authentication.JwtUtil;
+import com.example.itida.dto.UserDto;
+import com.example.itida.entity.User;
+import com.example.itida.enums.Role;
+import com.example.itida.exception.AuthenticationException;
+import com.example.itida.exception.EmailAlreadyExists;
+import com.example.itida.redisConfig.RedisTokenStore;
+import com.example.itida.repository.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+
+@Service
+public class AuthService {
+
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtUtil jwtUtil;
+    private final RedisTokenStore redisTokenStore;
+<span class="fc" id="L28">    private final Logger logger = LoggerFactory.getLogger(AuthService.class);</span>
+
+
+<span class="fc" id="L31">    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtUtil jwtUtil, RedisTokenStore redisTokenStore) {</span>
+<span class="fc" id="L32">        this.userRepository = userRepository;</span>
+<span class="fc" id="L33">        this.passwordEncoder = passwordEncoder;</span>
+<span class="fc" id="L34">        this.jwtUtil = jwtUtil;</span>
+<span class="fc" id="L35">        this.redisTokenStore = redisTokenStore;</span>
+<span class="fc" id="L36">    }</span>
+
+    public String signup(User user) {
+<span class="fc" id="L39">        logger.info(&quot;signup() method called&quot;);</span>
+<span class="fc" id="L40">        logger.debug(&quot;Received user details: {}&quot;, user);</span>
+        try {
+<span class="fc bfc" id="L42" title="All 2 branches covered.">            if (userRepository.findByEmail(user.getEmail()).isPresent()) {</span>
+<span class="fc" id="L43">                throw new EmailAlreadyExists(&quot;Email already exists&quot;);</span>
+            }
+
+<span class="fc" id="L46">            user.setPassword(passwordEncoder.encode(user.getPassword()));</span>
+<span class="pc bpc" id="L47" title="1 of 2 branches missed.">            user.setRole(user.getRole() == null ? Role.USER : user.getRole());</span>
+<span class="fc" id="L48">            userRepository.save(user);</span>
+<span class="fc" id="L49">            return &quot;User registered successfully!&quot;;</span>
+<span class="fc" id="L50">        } catch (EmailAlreadyExists e) {</span>
+<span class="fc" id="L51">            logger.error(&quot;EmailAlreadyExists exception: {}&quot;, e.getMessage(), e);</span>
+<span class="fc" id="L52">            throw e;</span>
+<span class="nc" id="L53">        } catch (Exception e) {</span>
+<span class="nc" id="L54">            logger.error(&quot;Unexpected error during user signup: {}&quot;, e.getMessage(), e);</span>
+<span class="nc" id="L55">            throw new RuntimeException(&quot;An error occurred while registering the user.&quot;);</span>
+        }
+    }
+
+    public Map&lt;String, String&gt; login(String email, String password) {
+<span class="fc" id="L60">        logger.info(&quot;Login method called for email: {}&quot;, email);</span>
+<span class="fc" id="L61">        logger.debug(&quot;Login parameters - email: {}, password: [PROTECTED]&quot;, email);</span>
+        try {
+<span class="fc" id="L63">            Optional&lt;User&gt; user = userRepository.findByEmail(email);</span>
+<span class="pc bpc" id="L64" title="1 of 4 branches missed.">            if (user.isPresent() &amp;&amp; passwordEncoder.matches(password, user.get().getPassword())) {</span>
+<span class="fc" id="L65">                String accessToken = jwtUtil.generateAccessToken(email);</span>
+<span class="fc" id="L66">                String refreshToken = jwtUtil.generateRefreshToken(email);</span>
+<span class="fc" id="L67">                redisTokenStore.storeAccessToken(accessToken, email);</span>
+<span class="fc" id="L68">                redisTokenStore.storeRefreshToken(refreshToken, email);</span>
+<span class="fc" id="L69">                Map&lt;String, String&gt; tokens = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L70">                tokens.put(&quot;accessToken&quot;, accessToken);</span>
+<span class="fc" id="L71">                tokens.put(&quot;refreshToken&quot;, refreshToken);</span>
+<span class="fc" id="L72">                tokens.put(&quot;userId&quot;, String.valueOf(user.get().getId()));</span>
+<span class="fc" id="L73">                tokens.put(&quot;name&quot;, String.valueOf(user.get().getFullName()));</span>
+<span class="fc" id="L74">                return tokens;</span>
+            }
+<span class="fc" id="L76">            throw new AuthenticationException(&quot;Invalid credentials!&quot;);</span>
+<span class="fc" id="L77">        }catch (Exception e){</span>
+<span class="fc" id="L78">            logger.error(&quot;Login failed for email: {}&quot;, email, e);</span>
+<span class="fc" id="L79">            throw e;</span>
+        }
+    }
+
+    public String refresh(String refreshToken) {
+<span class="fc" id="L84">        logger.info(&quot;refresh method called for refresh token&quot;);</span>
+        try {
+<span class="fc" id="L86">            String email = jwtUtil.extractEmail(refreshToken);</span>
+<span class="pc bpc" id="L87" title="1 of 4 branches missed.">            if (email != null &amp;&amp; redisTokenStore.isRefreshTokenExists(refreshToken)) {</span>
+<span class="fc" id="L88">                String newAccessToken = jwtUtil.generateAccessToken(email);</span>
+<span class="fc" id="L89">                redisTokenStore.storeAccessToken(newAccessToken, email);</span>
+<span class="fc" id="L90">                return newAccessToken;</span>
+            }
+<span class="fc" id="L92">            throw new AuthenticationException(&quot;Invalid refresh token&quot;);</span>
+<span class="fc" id="L93">        }catch (Exception e){</span>
+<span class="fc" id="L94">            logger.error(&quot;failed to generate token for current session&quot;, e);</span>
+<span class="fc" id="L95">            throw e;</span>
+        }
+    }
+
+    public void logout(String accessToken, String refreshToken) {
+<span class="fc" id="L100">        logger.info(&quot;logout() method called&quot;);</span>
+<span class="fc" id="L101">        logger.debug(&quot;Received accessToken: {}, refreshToken: {}&quot;, accessToken, refreshToken);</span>
+        try {
+<span class="fc" id="L103">            String jwtAccessToken = accessToken.substring(7);</span>
+<span class="fc" id="L104">            redisTokenStore.deleteAccessToken(jwtAccessToken);</span>
+<span class="fc" id="L105">            redisTokenStore.deleteRefreshToken(refreshToken);</span>
+<span class="fc" id="L106">            logger.info(&quot;Successfully logged out user with accessToken: {}&quot;, jwtAccessToken);</span>
+<span class="nc" id="L107">        } catch (Exception e) {</span>
+<span class="nc" id="L108">            logger.error(&quot;Unexpected error during logout: {}&quot;, e.getMessage(), e);</span>
+<span class="nc" id="L109">            throw new RuntimeException(&quot;An error occurred during logout.&quot;);</span>
+<span class="fc" id="L110">        }</span>
+<span class="fc" id="L111">    }</span>
+}
+
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>
