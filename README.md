@@ -177,7 +177,7 @@ This project is a backend implementation of a **Time Management System**, develo
 
 4. Build the application using Maven and skip tests:
    ```sh
-   mvn clean install -DskipTests
+   mvn clean install
    ```
 
 5. Run the application:
@@ -212,31 +212,27 @@ The frontend for this Time Management System is built using **React** and is ava
    git clone https://github.com/morabicit/timeLog_react.git
    cd timeLog_react
 
-2. **Install dependencies:**:
-
+2. **Install dependencies**:
 ```sh
    npm install
 
-2. **Configure API connection:**:
-the settted backend API base URL:
-javascript
-Copy
-Edit
+3. **Configure API connection**:
+the settted backend API base URL in the react project:
+```sh
 export const API_BASE_URL = "http://localhost:8080";
-Start the React development server:
 
-sh
-Copy
-Edit
+4. **Start the React development server**:
+```sh
 npm start
-The React app will run on http://localhost:3000.
-Ensure Backend Connection:
 
+The React app will run on http://localhost:3000.
+
+5. **Ensure Backend Connection**:
 The frontend interacts with the backend system running on port 8080.
 JWT authentication is enforced, ensuring only authenticated users can access protected APIs.
 Login and token management are handled using local storage.
-Testing API Integration:
 
+6. **Testing API Integration**:
 Ensure the backend (Spring Boot) is running on port 8080.
 Register or log in to retrieve the JWT token.
 The token is automatically attached to all API requests to ensure secure access.
