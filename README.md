@@ -157,7 +157,7 @@ This project is a backend implementation of a **Time Management System**, develo
 
 1. Clone the repository:  
    `git clone https://github.com/morabicit/timeLog_backend.git`  
-   `cd <repository-name>`
+   `cd <timeLog_backend>`
 
 2. Ensure the following prerequisites are installed on your system:  
    - Java 17
@@ -205,34 +205,29 @@ The frontend for this Time Management System is built using **React** and is ava
 - **Formik & Yup** (Form handling and validation)
 - **JWT Authentication** (Secured API communication)
 
-### Setup Instructions:
+### Setup Instructions
 
-1. **Clone the frontend repository**:
-   ```sh
-   git clone https://github.com/morabicit/timeLog_react.git
-   cd timeLog_react
+1. **Clone the frontend repository**:  
+   `git clone https://github.com/morabicit/timeLog_react.git && cd timeLog_react`  
 
-2. **Install dependencies**:
-```sh
-   npm install
+2. **Install dependencies**:  
+   `npm install`  
 
-3. **Configure API connection**:
-the settted backend API base URL in the react project:
-```sh
-export const API_BASE_URL = "http://localhost:8080";
+3. **Configure API connection**:  
+   Set the backend API base URL in the React project:  
+   `export const API_BASE_URL = "http://localhost:8080";`  
 
-4. **Start the React development server**:
-```sh
-npm start
+4. **Start the React development server**:  
+   `npm start`  
+   The React app will run on [http://localhost:3000](http://localhost:3000).  
 
-The React app will run on http://localhost:3000.
+5. **Ensure Backend Connection**:  
+   - The frontend interacts with the backend system running on port `8080`.  
+   - JWT authentication is enforced, ensuring only authenticated users can access protected APIs.  
+   - Login and token management are handled using local storage.  
 
-5. **Ensure Backend Connection**:
-The frontend interacts with the backend system running on port 8080.
-JWT authentication is enforced, ensuring only authenticated users can access protected APIs.
-Login and token management are handled using local storage.
+6. **Testing API Integration**:  
+   - Ensure the backend (Spring Boot) is running on port `8080`.  
+   - Register or log in to retrieve the JWT token.  
+   - The token is automatically attached to all API requests to ensure secure access.
 
-6. **Testing API Integration**:
-Ensure the backend (Spring Boot) is running on port 8080.
-Register or log in to retrieve the JWT token.
-The token is automatically attached to all API requests to ensure secure access.
