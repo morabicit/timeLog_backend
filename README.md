@@ -156,7 +156,7 @@ This project is a backend implementation of a **Time Management System**, develo
 ## Spring Boot Application Setup Instructions
 
 1. Clone the repository:  
-   `git clone [https://github.com/morabicit/wave.git](https://github.com/morabicit/timeLog_backend.git)`  
+   `git clone https://github.com/morabicit/timeLog_backend.git`  
    `cd <repository-name>`
 
 2. Ensure the following prerequisites are installed on your system:  
@@ -188,4 +188,55 @@ This project is a backend implementation of a **Time Management System**, develo
 6. Verify the application is running on `http://localhost:8080` and ensure your MySQL and Redis servers are accessible. The application will automatically create or update tables in the database based on the JPA configuration.
 
 ---
+---
 
+## React Frontend (Time Management System UI)
+
+The frontend for this Time Management System is built using **React** and is available in a separate repository.
+
+### Repository Link:
+[GitHub - TimeLog React Frontend](https://github.com/morabicit/timeLog_react)
+
+### Technologies Used:
+- **React 18** (Frontend framework)
+- **React Router** (Navigation)
+- **Axios** (API calls)
+- **MUI (Material-UI)** (UI Components)
+- **Formik & Yup** (Form handling and validation)
+- **JWT Authentication** (Secured API communication)
+
+### Setup Instructions:
+
+1. **Clone the frontend repository**:
+   ```sh
+   git clone https://github.com/morabicit/timeLog_react.git
+   cd timeLog_react
+
+2. **Install dependencies:**:
+
+```sh
+   npm install
+
+2. **Configure API connection:**:
+the settted backend API base URL:
+javascript
+Copy
+Edit
+export const API_BASE_URL = "http://localhost:8080";
+Start the React development server:
+
+sh
+Copy
+Edit
+npm start
+The React app will run on http://localhost:3000.
+Ensure Backend Connection:
+
+The frontend interacts with the backend system running on port 8080.
+JWT authentication is enforced, ensuring only authenticated users can access protected APIs.
+Login and token management are handled using local storage.
+Testing API Integration:
+
+Ensure the backend (Spring Boot) is running on port 8080.
+Register or log in to retrieve the JWT token.
+The token is automatically attached to all API requests to ensure secure access.
