@@ -41,7 +41,8 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/auth/**",
                                 "/swagger-ui/**",
-                                "/v3/api-docs/**"
+                                "/v3/api-docs/**",
+                                "swagger-ui.html"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
@@ -53,7 +54,6 @@ public class SecurityConfig {
         return http.build();
     }
 
-    // Add CORS configuration bean
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
