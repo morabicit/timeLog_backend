@@ -120,7 +120,6 @@ This project is a backend implementation of a **Time Management System**, develo
   - **DEBUG level**: Used as needed for deep debugging.
 - Example Log4J configuration in `log4j2.xml`:
   ```<?xml version="1.0" encoding="UTF-8"?>
-<Configuration status="WARN">
     <Appenders>
         <Console name="Console" target="SYSTEM_OUT">
             <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
@@ -131,7 +130,6 @@ This project is a backend implementation of a **Time Management System**, develo
             <AppenderRef ref="Console"/>
         </Root>
     </Loggers>
-</Configuration>
   ```
 
 ---
