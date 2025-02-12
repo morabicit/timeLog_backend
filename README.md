@@ -102,11 +102,11 @@ This project is a backend implementation of a **Time Management System**, develo
 
 ## Redis Integration
 
-- Redis is used to store JWT tokens for session management.
-- When a user logs out, their token is added to Redis to prevent reuse.
-- This improves security by ensuring that blacklisted tokens are not re-used until they expire.
-- Redis can be configured in as in-memory storage
-
+- Redis is used to store whitelisted JWT tokens for authentication.
+- When a user logs in, their valid token is stored in Redis with an expiration time matching the JWT expiry.
+- Only tokens present in Redis are considered valid, ensuring enhanced security.
+- When a user logs out, their token is removed from Redis, preventing further use.
+- This approach ensures that only actively managed tokens are accepted, reducing the risk of session hijacking.
 ---
 
 ## Logging with Log4J
