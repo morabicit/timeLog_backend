@@ -68,7 +68,7 @@ This project is a backend implementation of a **Time Management System**, develo
 - Requires the access token in the Authorization header.
 
 #### 4. POST `/api/auth/refresh`
-- Refreshes the access token for an extra 1 minute and returns it for the user.
+- Refreshes the access token for an extra 10 minute and returns it for the user.
 - Requires the refresh token in the Authorization header (valid for 30 minutes).
 
 ---
