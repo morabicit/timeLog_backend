@@ -1,4 +1,4 @@
-# News Management System
+# Time Management System
 
 This project is a backend implementation of a **Time Management System**, developed as part of an assignment. It includes APIs for authentication, user management, and time log management, built using **Spring Boot 3.4.2**, **Java 17**, and **MySQL**.
 
